@@ -12,8 +12,8 @@ const (
 )
 
 type Command struct {
-	Action Action
-	Arg    string
+	Action Action `json:"action"`
+	Arg    string `json:"arg"`
 }
 
 func NewCommand(action Action) Command {

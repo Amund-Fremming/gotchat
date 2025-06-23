@@ -18,6 +18,17 @@ type Server struct {
 	Broadcast chan string
 }
 
+type Room struct {
+	Join      chan []byte
+	Leave     chan []byte
+	Broadcast chan []byte
+}
+
+type RoomInfo struct {
+	Name string
+	Conn *websocket.Conn
+}
+
 func NewServer(name string) Server {
 	return Server{
 		Mu:        sync.RWMutex{},

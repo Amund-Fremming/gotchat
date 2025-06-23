@@ -9,9 +9,7 @@ import (
 
 func main() {
 	http.HandleFunc("/health", api.Health)
-	http.HandleFunc("/chat", ws.HandleWebSocket)
-
-	go ws.HandleMessages()
+	http.HandleFunc("/chat", ws.ClientHandler)
 
 	slog.Info("Listening on port 8080")
 	http.ListenAndServe(":8080", nil)

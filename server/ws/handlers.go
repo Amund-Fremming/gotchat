@@ -1,59 +1,75 @@
 package ws
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 
+	"github.com/amund-fremming/common"
 	"github.com/gorilla/websocket"
 )
 
-var broadcast = make(chan []byte)
+var commandBroadcast = make(chan *common.Command)
 var clients = make(map[*websocket.Conn]bool)
+
+var connectChan = make(chan string)
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
+// Handles all connecting clients
+func ClientHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		slog.Error("Failed to create socket.")
+		conn.Close()
+		return
 	}
-	defer conn.Close()
+	// defer conn.Close()
 
 	clients[conn] = true
+	clients := strconv.Itoa(len(clients))
+	fmt.Println("[Connected] Current clients:", clients)
+	go commandHandler(conn)
+}
+
+// Handles commands for a single client
+func commandHandler(conn *websocket.Conn) {
+	defer func() {
+		delete(clients, conn)
+		conn.Close()
+	}()
 
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			slog.Info("Client disconnected.")
+			slog.Error("Failed to read message from client, closing connection")
 			break
 		}
 
-		fmt.Println("[SERVER] Recieved message:", string(msg))
-
-		// REMOVE THIS
-		if string(msg) == "Ping" {
-			msg = []byte("Pong")
+		var cmd common.Command
+		err = json.Unmarshal(msg, &cmd)
+		if err != nil {
+			slog.Error("Failed to parse command")
+			break
 		}
 
-		broadcast <- msg
+		commandBroadcast <- &cmd
 	}
 }
 
-func HandleMessages() {
+// Routes all command for the app to their handlers
+func commandRouter() {
 	for {
-		msg := <-broadcast
-		for client := range clients {
-			err := client.WriteMessage(websocket.TextMessage, msg)
-			if err != nil {
-				delete(clients, client)
-				client.Close()
-				slog.Error("Lost connection to client.")
-			}
-
-			fmt.Println("[SERVER] Broadcasting messages to clients")
+		cmd := <-commandBroadcast
+		switch {
+		case cmd.Action == common.Connect:
+		case cmd.Action == common.Create:
+		case cmd.Action == common.Exit:
+		case cmd.Action == common.Send:
 		}
 	}
 }
