@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/amund-fremming/common"
+	"github.com/amund-fremming/common/enum"
+	"github.com/amund-fremming/common/model"
 	"github.com/gorilla/websocket"
 )
 
-var commandBroadcast = make(chan *common.Command)
+var commandBroadcast = make(chan *model.Command)
 var clients = make(map[*websocket.Conn]bool)
 
 var connectChan = make(chan string)
@@ -24,7 +25,7 @@ var upgrader = websocket.Upgrader{
 func ClientHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		slog.Error("Failed to create socket.")
+		slog.Error("Failed to upgrade connection.")
 		conn.Close()
 		return
 	}
@@ -46,30 +47,35 @@ func clientCommandReader(conn *websocket.Conn) {
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
+			fmt.Println("[DEBUG], ", err.Error())
 			slog.Error("Failed to read message from client, closing connection")
 			break
 		}
 
-		var cmd common.Command
+		var cmd model.Command
 		err = json.Unmarshal(msg, &cmd)
 		if err != nil {
 			slog.Error("Failed to parse command")
 			break
 		}
 
+		fmt.Println("[DEBUG], recieved message from client: " + cmd.Action.String() + ":" + cmd.Arg)
+
 		commandBroadcast <- &cmd
 	}
 }
 
 // Routes all command for the app to their handlers
-func commandRouter() {
+func CommandRouter() {
 	for {
 		cmd := <-commandBroadcast
+		fmt.Println("[CommandRouter] Routing command:", cmd.Action)
+
 		switch {
-		case cmd.Action == common.Connect:
-		case cmd.Action == common.Create:
-		case cmd.Action == common.Exit:
-		case cmd.Action == common.Send:
+		case cmd.Action == enum.Connect:
+		case cmd.Action == enum.Create:
+		case cmd.Action == enum.Exit:
+		case cmd.Action == enum.Send:
 		}
 	}
 }

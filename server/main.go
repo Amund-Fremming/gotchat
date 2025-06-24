@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log/slog"
+	"fmt"
 	"net/http"
 	"server/api"
 	"server/ws"
@@ -11,6 +11,7 @@ func main() {
 	http.HandleFunc("/health", api.Health)
 	http.HandleFunc("/chat", ws.ClientHandler)
 
-	slog.Info("Listening on port 8080")
+	fmt.Println("[SERVER] awaken")
+	go ws.CommandRouter()
 	http.ListenAndServe(":8080", nil)
 }
