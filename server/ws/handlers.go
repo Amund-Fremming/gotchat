@@ -15,8 +15,6 @@ import (
 var commandBroadcast = make(chan *model.Command)
 var clients = make(map[*websocket.Conn]bool)
 
-var connectChan = make(chan string)
-
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
@@ -65,17 +63,17 @@ func clientCommandReader(conn *websocket.Conn) {
 	}
 }
 
-// Routes all command for the app to their handlers
-func CommandRouter() {
+// Dispatches all command to the right channels
+func CommandDispatcher() {
 	for {
 		cmd := <-commandBroadcast
 		fmt.Println("[CommandRouter] Routing command:", cmd.Action)
 
-		switch {
-		case cmd.Action == enum.Connect:
-		case cmd.Action == enum.Create:
-		case cmd.Action == enum.Exit:
-		case cmd.Action == enum.Send:
+		switch cmd.Action {
+		case enum.Connect:
+		case enum.Create:
+		case enum.Send:
+		case enum.Leave:
 		}
 	}
 }

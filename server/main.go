@@ -12,6 +12,6 @@ func main() {
 	http.HandleFunc("/chat", ws.ClientHandler)
 
 	fmt.Println("[SERVER] awaken")
-	go ws.CommandRouter()
+	go ws.CommandDispatcher()
 	http.ListenAndServe(":8080", nil)
 }
