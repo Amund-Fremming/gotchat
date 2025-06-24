@@ -1,35 +1,18 @@
-Connection/Client handler
+Client handler
 
 - Tar imot koblinger og legger i state
 - Løkke som lytter til innkommende meldinger (Kommandoer)
 - Broadcaster Commands til Command handler
 
-Command handler
+Client command reader
 
-- Tolker commandoer
-- Broadcast til
-  - Join kanal
-  - Leave room kanal
-  - Leave program kanal
-  - Broadcast melding kanal
-  - Info kanal
+- Leser kommandoer fra enkel klient
+- Broadcaser til Command Router
 
-Join room
+Command Router
 
-- Legger til bruker i rommet
-- Sender ny state til klient
+- Router commands til deres egne go ruites og sender med conn
 
-Send message
+Egne go rutines
 
-- broadcaster meldingen til rommet
-
-Leave room
-
-- Sender ny state til klient
-- Fjerer bruker fra state
-- Stopper koblingen
-
-Leave program
-
-- Fjerner bruker fra connections
-- Sende ny state
+- Håndterer sitt område for en klient

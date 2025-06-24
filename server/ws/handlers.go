@@ -33,11 +33,11 @@ func ClientHandler(w http.ResponseWriter, r *http.Request) {
 	clients[conn] = true
 	clients := strconv.Itoa(len(clients))
 	fmt.Println("[Connected] Current clients:", clients)
-	go commandHandler(conn)
+	go clientCommandReader(conn)
 }
 
 // Handles commands for a single client
-func commandHandler(conn *websocket.Conn) {
+func clientCommandReader(conn *websocket.Conn) {
 	defer func() {
 		delete(clients, conn)
 		conn.Close()
