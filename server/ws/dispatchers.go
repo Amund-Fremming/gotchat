@@ -65,16 +65,12 @@ func CommandDispatcher() {
 		switch cmd.Action {
 		case enum.Connect:
 			handleConnect(wrapper)
-			break
 		case enum.Create:
 			handleCreate(wrapper)
-			break
 		case enum.Send:
 			handleSend(wrapper)
-			break
 		case enum.Leave:
 			handleLeave(wrapper)
-			break
 		}
 	}
 }
