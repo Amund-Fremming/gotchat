@@ -1,7 +1,7 @@
 package main
 
 import (
-	"client/handler"
+	"client/program"
 	"log"
 	"net/http"
 )
@@ -16,13 +16,11 @@ func main() {
 		log.Println("[Error] The sever is currently unavailable")
 		return
 	}
+	log.Println("[Server] is healthy")
 
-	log.Println("[Server] Server is healthy")
-	log.Println("[Client] Creating conneciton to the server")
+	go program.ConnectToServer()
+	go program.InputReader()
+	go program.CommandDispatcher()
 
-	err = handler.ConnectWebSocket()
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
+	select {}
 }

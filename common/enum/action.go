@@ -7,6 +7,7 @@ const (
 	Connect
 	Create
 	Status
+	Leave
 	Exit
 	Send
 )
@@ -16,6 +17,7 @@ var actionNames = map[Action]string{
 	Connect: "connect",
 	Create:  "create",
 	Status:  "status",
+	Leave:   "leave",
 	Exit:    "exit",
 	Send:    "send",
 }

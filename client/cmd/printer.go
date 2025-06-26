@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"log"
+	"strings"
 
-	"github.com/amund-fremming/common"
+	"github.com/amund-fremming/common/model"
 )
 
 func DisplayWelcomeMessage() {
@@ -20,7 +21,7 @@ Lobby commands:
     /connect <name>   Connect to a room with name "<name>"
     /create  <name>   Creates a room with name "<name>"
     /status           Displays all available rooms with a counter
-    /exit             Disconnects the client and shuts down the app
+    /leave            Disconnects the client and shuts down the app
 
 Room commands:
     /help             Displays available commands in you context
@@ -29,6 +30,6 @@ Room commands:
 	`)
 }
 
-func DisplayMessage(msg *common.Message) {
-	log.Println("[" + msg.Name + "]" + msg.Text)
+func DisplayMessage(msg *model.Message) {
+	log.Println(strings.ToLower("[" + msg.Name + "]" + msg.Body))
 }

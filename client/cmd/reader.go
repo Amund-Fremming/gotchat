@@ -3,19 +3,21 @@ package cmd
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 
-	"github.com/amund-fremming/common"
+	"github.com/amund-fremming/common/enum"
+	"github.com/amund-fremming/common/model"
 )
 
-type Command = common.Command
+type Command = model.Command
 
 func readInput() string {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("> ")
+	// fmt.Println("> ")
 	input, _ := reader.ReadString('\n')
+	input = strings.TrimSpace(input)
+
 	return input
 }
 
@@ -23,35 +25,43 @@ func GetCommand() (Command, error) {
 	var input string = readInput()
 	verbs := strings.Split(input, " ")
 
-	if len(verbs) > 2 {
-		return Command{}, errors.New("commands can only have one action and one argument")
-	}
-
-	if len(verbs) == 1 {
-		runes := []rune(verbs[0])
-		if runes[0] == '/' {
-			return Command{}, errors.New("command was invalid")
-		}
-
-		command := Command{
-			Action: common.Send,
-			Arg:    verbs[1],
-		}
-
-		return command, nil
+	// TODO: some validation for the input
+	if len(verbs) == 0 {
+		return Command{}, errors.New("cannot read empty command")
 	}
 
 	switch verbs[0] {
 	case "/help":
-		return common.NewCommand(common.Help), nil
-	case "/connect":
-		return common.NewCommand(common.Connect), nil
-	case "/create":
-		return common.NewCommand(common.Create), nil
+		return model.NewCommand(enum.Help), nil
 	case "/status":
-		return common.NewCommand(common.Status), nil
+		return model.NewCommand(enum.Status), nil
 	case "/exit":
-		return common.NewCommand(common.Exit), nil
+		return model.NewCommand(enum.Exit), nil
+	case "/leave":
+		return model.Command{
+			Action:     enum.Leave,
+			ClientName: verbs[1],
+			RoomName:   verbs[2],
+		}, nil
+	case "/connect":
+		return model.Command{
+			Action:     enum.Connect,
+			ClientName: verbs[1],
+			RoomName:   verbs[2],
+		}, nil
+	case "/create":
+		return model.Command{
+			Action:     enum.Create,
+			ClientName: verbs[1],
+			RoomName:   verbs[2],
+		}, nil
+	case "/send":
+		return model.Command{
+			Action:     enum.Send,
+			ClientName: verbs[1],
+			RoomName:   verbs[2],
+			Message:    verbs[3],
+		}, nil
 	}
 
 	return Command{}, errors.New("Command was invalid")

@@ -9,7 +9,7 @@ import (
 
 func main() {
 	http.HandleFunc("/health", api.Health)
-	http.HandleFunc("/chat", ws.ClientHandler)
+	http.HandleFunc("/chat", ws.ClientDispatcher)
 
 	fmt.Println("[SERVER] awaken")
 	go ws.CommandDispatcher()
