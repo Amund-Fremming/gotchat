@@ -31,5 +31,5 @@ Room commands:
 }
 
 func DisplayMessage(msg *model.Message) {
-	log.Println(strings.ToLower("[" + msg.Name + "]" + msg.Body))
+	log.Println(strings.ToLower("[" + msg.Sender + "] " + msg.Body))
 }

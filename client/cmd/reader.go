@@ -14,7 +14,6 @@ type Command = model.Command
 
 func readInput() string {
 	reader := bufio.NewReader(os.Stdin)
-	// fmt.Println("> ")
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSpace(input)
 

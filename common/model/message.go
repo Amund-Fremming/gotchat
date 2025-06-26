@@ -1,6 +1,6 @@
 package model
 
 type Message struct {
-	Name string
+	Sender string
 	Body string
 }
