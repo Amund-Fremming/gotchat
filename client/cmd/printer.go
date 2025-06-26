@@ -1,21 +1,22 @@
 package cmd
 
 import (
-	"log"
+	"fmt"
 	"strings"
 
 	"github.com/amund-fremming/common/model"
 )
 
 func DisplayWelcomeMessage() {
-	log.Println(`
+	fmt.Println(`
 Welcome to go tchat!
     - You are now in the lobby
-    - Start by running the "/help" command`)
+    - Start by running the "/help" command
+    `)
 }
 
 func DisplayCommands() {
-	log.Println(`
+	fmt.Println(`
 Lobby commands:
     /help             Displays available commands in you context
     /connect <name>   Connect to a room with name "<name>"
@@ -30,6 +31,10 @@ Room commands:
 	`)
 }
 
-func DisplayMessage(msg *model.Message) {
-	log.Println(strings.ToLower("[" + msg.Sender + "] " + msg.Body))
+func DisplayMessage(msg *model.ChatMessage) {
+	fmt.Println(strings.ToLower("[" + msg.Sender + "] " + msg.Content))
+}
+
+func DisplayError(content string) {
+	fmt.Println("[SERVER] " + content)
 }

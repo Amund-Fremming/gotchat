@@ -11,7 +11,8 @@ func main() {
 	http.HandleFunc("/health", api.Health)
 	http.HandleFunc("/chat", ws.ClientDispatcher)
 
-	fmt.Println("[SERVER] awaken")
+	fmt.Println("[SERVER] Starting..")
+
 	go ws.CommandDispatcher()
 	http.ListenAndServe(":8080", nil)
 }

@@ -4,12 +4,12 @@ type View int
 
 const (
 	Lobby View = iota
-	Hub
+	Room
 )
 
 var viewNames = map[View]string{
 	Lobby: "lobby",
-	Hub:   "hub",
+	Room:  "room",
 }
 
 func (v View) String() string {

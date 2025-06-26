@@ -3,7 +3,6 @@ package ws
 import (
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"server/models"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var commandBroadcast = make(chan *models.ConnectionWrapper[model.Command])
+var commandBroadcast = make(chan *models.ConnectionWrapper)
 var state = models.NewAppState()
 
 var upgrader = websocket.Upgrader{
@@ -22,7 +21,7 @@ var upgrader = websocket.Upgrader{
 func ClientDispatcher(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		slog.Error("Failed to upgrade connection.")
+		fmt.Println("[ERROR] Failed to upgrade connection.")
 		conn.Close()
 		return
 	}
@@ -44,14 +43,12 @@ func commandReader(conn *websocket.Conn) {
 		var cmd model.Command
 		err = json.Unmarshal(msg, &cmd)
 		if err != nil {
-			slog.Error("[ERROR] Failed to unmarshal command")
+			fmt.Println("[ERROR] Failed to unmarshal bytes (200)")
 			break
 		}
 
-		commandBroadcast <- &models.ConnectionWrapper[model.Command]{
-			Item: cmd,
-			Conn: conn,
-		}
+		wrapper := models.ConnectionWrapper{Item: cmd, Conn: conn}
+		commandBroadcast <- &wrapper
 	}
 }
 
@@ -59,14 +56,13 @@ func CommandDispatcher() {
 	for {
 		wrapper := <-commandBroadcast
 		cmd := wrapper.Item
-
 		fmt.Println("[CMD_DISPATCHER] dispatching command:", cmd.Action)
 
 		switch cmd.Action {
 		case enum.Connect:
 			handleConnect(wrapper)
 		case enum.Create:
-			handleCreate(wrapper)
+			handleCreate(&state, wrapper)
 		case enum.Send:
 			handleSend(wrapper)
 		case enum.Leave:

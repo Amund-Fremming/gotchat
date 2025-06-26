@@ -1,136 +1,115 @@
 package ws
 
 import (
+	"encoding/json"
 	"fmt"
 	"server/models"
 
+	"github.com/amund-fremming/common/enum"
 	"github.com/amund-fremming/common/model"
+	"github.com/gorilla/websocket"
 )
 
-func handleConnect(wrapper *models.ConnectionWrapper[model.Command]) {
-	conn := wrapper.Conn
-	cmd := wrapper.Item
+func handleError(content string, conn *websocket.Conn) {
+	fmt.Println("[SERVER] " + content)
+
+	serverError := model.ServerError{View: enum.Lobby, Content: content}
+	rawServerError, _ := json.Marshal(serverError)
+	envelope := model.Envelope{Type: enum.ServerError, Payload: rawServerError}
+
+	err := conn.WriteJSON(envelope)
+	if err != nil {
+		fmt.Println("[MAJOR_ERROR] Failed to write json to client")
+		conn.Close()
+	}
+}
+
+func handleConnect(wrapper *models.ConnectionWrapper) {
+	cmd, conn := wrapper.UnWrap()
 	room, roomExists := state.GetRoom(cmd.RoomName)
 
 	if !roomExists {
-		fmt.Println("[CLIENT] Tried to send a message to non existing room")
-		conn.WriteJSON(model.Message{
-			Sender: "SERVER",
-			Body:   "Room does not exist",
-		})
+		handleError("Room does not exist", conn)
 		return
 	}
 
 	_, ok := room.Clients[cmd.ClientName]
 	if ok {
-		fmt.Println("[CLIENT] Tried to join a room with an existing name")
-		conn.WriteJSON(model.Message{
-			Sender: "SERVER",
-			Body:   "Name is already in use",
-		})
+		handleError("Username is already in use", conn)
 		return
 	}
 
-	client := models.Client{
-		Name: cmd.ClientName,
-		Conn: wrapper.Conn,
-	}
-
+	client := models.Client{Name: cmd.ClientName, Conn: conn}
 	room.Connect <- &client
+
+	fmt.Println("[CLIENT] Connected")
 }
 
-func handleCreate(wrapper *models.ConnectionWrapper[model.Command]) {
-	conn := wrapper.Conn
-	cmd := wrapper.Item
-	room, roomExists := state.GetRoom(cmd.RoomName)
+func handleCreate(state *models.AppState, wrapper *models.ConnectionWrapper) {
+	cmd, conn := wrapper.UnWrap()
+	_, roomExists := state.GetRoom(cmd.RoomName)
 
 	if roomExists {
-		fmt.Println("[CLIENT] Tried to create a room with an existing name")
-		conn.WriteJSON(model.Message{
-			Sender: "SERVER",
-			Body:   "Name is already in use",
-		})
+		handleError("Room name is already in use", conn)
 		return
 	}
 
-	newRoom := models.NewRoom(cmd.ClientName, wrapper.Conn)
+	newRoom := models.NewRoom(cmd.ClientName, conn)
 	state.AddRoom(cmd.RoomName, &newRoom)
 
-	go room.Run()
+	go newRoom.Run()
 
-	client := models.Client{
-		Name: cmd.ClientName,
-		Conn: wrapper.Conn,
-	}
+	client := models.Client{Name: cmd.ClientName, Conn: conn}
+	newRoom.Connect <- &client
 
-	room.Connect <- &client
-	fmt.Println("[ROOM] Created")
+	fmt.Println("[CLIENT] Created room")
 }
 
-func handleSend(wrapper *models.ConnectionWrapper[model.Command]) {
-	conn := wrapper.Conn
-	cmd := wrapper.Item
+func handleSend(wrapper *models.ConnectionWrapper) {
+	cmd, conn := wrapper.UnWrap()
 	room, roomExists := state.GetRoom(cmd.RoomName)
 
 	if !roomExists {
-		fmt.Println("[CLIENT] Tried to send a message to non existing room")
-		conn.WriteJSON(model.Message{
-			Sender: "SERVER",
-			Body:   "Room does not exist",
-		})
+		handleError("Room does not exist", conn)
 		return
 	}
 
 	_, ok := room.Clients[cmd.ClientName]
 	if !ok {
-		err := wrapper.Conn.WriteJSON(model.Message{
-			Sender: "SERVER",
-			Body:   "You are not connected to room `" + cmd.RoomName + "`.",
-		})
-
-		if err != nil {
-			fmt.Println("[ERROR] Failed to write json to client")
-			wrapper.Conn.Close()
-		}
+		handleError("You are not connected to this room.", conn)
+		return
 	}
 
-	message := model.Message{
-		Sender: cmd.ClientName,
-		Body:   cmd.Message,
-	}
-
+	message := model.ChatMessage{Sender: cmd.ClientName, Content: cmd.Message}
 	room.Broadcast <- message
+
 	fmt.Println("[ROOM] Client sendt a message")
 }
 
-func handleLeave(wrapper *models.ConnectionWrapper[model.Command]) {
-	conn := wrapper.Conn
-	cmd := wrapper.Item
+func handleLeave(wrapper *models.ConnectionWrapper) {
+	cmd, conn := wrapper.UnWrap()
 	room, roomExists := state.GetRoom(cmd.RoomName)
 
 	if !roomExists {
-		fmt.Println("[CLIENT] Tried to leave non existing room")
-		conn.WriteJSON(model.Message{
-			Sender: "SERVER",
-			Body:   "Cannot leave non existing room",
-		})
+		handleError("Cannot leave non-existing room", conn)
 		return
 	}
 
 	conn, ok := room.Clients[cmd.ClientName]
-	if ok {
-		delete(room.Clients, cmd.ClientName)
-		conn.WriteJSON(model.Message{
-			Sender: "SERVER",
-			Body:   "You left the room",
-		})
+	if !ok {
+		handleError("Cannot leave non entered room", conn)
+		return
 	}
 
-	message := model.Message{
-		Sender: "SERVER",
-		Body:   cmd.ClientName + " left the room...",
-	}
+	delete(room.Clients, cmd.ClientName)
+	message := model.ChatMessage{Sender: "SERVER", Content: "You left the room"}
+	rawMessage, _ := json.Marshal(message)
 
-	room.Broadcast <- message
+	envelope := model.Envelope{Type: enum.ChatMessage, Payload: rawMessage}
+	conn.WriteJSON(envelope)
+
+	roomMessage := model.ChatMessage{Sender: "SERVER", Content: cmd.ClientName + " left the room..."}
+	room.Broadcast <- roomMessage
+
 	fmt.Println("[ROOM] Client disconnected")
 }

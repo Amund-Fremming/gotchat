@@ -2,24 +2,24 @@ package main
 
 import (
 	"client/program"
-	"log"
+	"fmt"
 	"net/http"
 )
 
 const ServerUrlBase = "http://localhost:8080"
 
 func main() {
-	log.SetFlags(0)
-
 	response, err := http.Get(ServerUrlBase + "/health")
 	if err != nil || response.Status != "200 OK" {
-		log.Println("[Error] The sever is currently unavailable")
+		fmt.Println("[ERROR] The sever is currently unavailable")
+		fmt.Println("[CLIENT] Shutting down..")
 		return
 	}
-	log.Println("[Server] is healthy")
+	fmt.Println("[SERVER] Healthy")
 
-	go program.ConnectToServer()
-	go program.InputReader()
+	program.ConnectToServer()
+	go program.CommandReader()
+	go program.ServerReader()
 	go program.CommandDispatcher()
 
 	select {}

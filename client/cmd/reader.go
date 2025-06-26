@@ -12,16 +12,15 @@ import (
 
 type Command = model.Command
 
-func readInput() string {
+func ReadInput() string {
 	reader := bufio.NewReader(os.Stdin)
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSpace(input)
-
 	return input
 }
 
 func GetCommand() (Command, error) {
-	var input string = readInput()
+	var input string = ReadInput()
 	verbs := strings.Split(input, " ")
 
 	// TODO: some validation for the input
