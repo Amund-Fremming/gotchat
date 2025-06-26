@@ -26,7 +26,7 @@ func GetCommand() (Command, error) {
 
 	// TODO: some validation for the input
 	if len(verbs) == 0 {
-		return Command{}, errors.New("cannot read empty command")
+		return Command{}, errors.New("[ERROR] cannot read empty command")
 	}
 
 	switch verbs[0] {
@@ -63,5 +63,5 @@ func GetCommand() (Command, error) {
 		}, nil
 	}
 
-	return Command{}, errors.New("Command was invalid")
+	return Command{}, errors.New("[ERROR] Invalid command")
 }

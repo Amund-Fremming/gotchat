@@ -27,26 +27,24 @@ func ClientDispatcher(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("[Connected] Client connected")
+	fmt.Println("[CLIENT] Connected")
 	go commandReader(conn)
 }
 
 func commandReader(conn *websocket.Conn) {
-	defer func() {
-		conn.Close()
-	}()
+	defer conn.Close()
 
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			fmt.Println("[ERROR] Failed to read message from client, closing connection")
+			fmt.Println("[ERROR] Failed to read message from client")
 			break
 		}
 
 		var cmd model.Command
 		err = json.Unmarshal(msg, &cmd)
 		if err != nil {
-			slog.Error("Failed to parse command")
+			slog.Error("[ERROR] Failed to unmarshal command")
 			break
 		}
 
@@ -62,7 +60,7 @@ func CommandDispatcher() {
 		wrapper := <-commandBroadcast
 		cmd := wrapper.Item
 
-		fmt.Println("[Command Dispatcher] dispatching command:", cmd.Action)
+		fmt.Println("[CMD_DISPATCHER] dispatching command:", cmd.Action)
 
 		switch cmd.Action {
 		case enum.Connect:

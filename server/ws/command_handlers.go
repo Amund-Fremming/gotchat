@@ -13,7 +13,7 @@ func handleConnect(wrapper *models.ConnectionWrapper[model.Command]) {
 	room, roomExists := state.GetRoom(cmd.RoomName)
 
 	if !roomExists {
-		fmt.Println("[DEBUG] tried to send a message to non existing room")
+		fmt.Println("[CLIENT] Tried to send a message to non existing room")
 		conn.WriteJSON(model.Message{
 			Sender: "SERVER",
 			Body:   "Room does not exist",
@@ -23,7 +23,7 @@ func handleConnect(wrapper *models.ConnectionWrapper[model.Command]) {
 
 	_, ok := room.Clients[cmd.ClientName]
 	if ok {
-		fmt.Println("[DEBUG] tried to join a room with an existing name")
+		fmt.Println("[CLIENT] Tried to join a room with an existing name")
 		conn.WriteJSON(model.Message{
 			Sender: "SERVER",
 			Body:   "Name is already in use",
@@ -45,7 +45,7 @@ func handleCreate(wrapper *models.ConnectionWrapper[model.Command]) {
 	room, roomExists := state.GetRoom(cmd.RoomName)
 
 	if roomExists {
-		fmt.Println("[DEBUG] tried to create a room with an existing name")
+		fmt.Println("[CLIENT] Tried to create a room with an existing name")
 		conn.WriteJSON(model.Message{
 			Sender: "SERVER",
 			Body:   "Name is already in use",
@@ -64,7 +64,7 @@ func handleCreate(wrapper *models.ConnectionWrapper[model.Command]) {
 	}
 
 	room.Connect <- &client
-	fmt.Println("[Room] was created")
+	fmt.Println("[ROOM] Created")
 }
 
 func handleSend(wrapper *models.ConnectionWrapper[model.Command]) {
@@ -73,7 +73,7 @@ func handleSend(wrapper *models.ConnectionWrapper[model.Command]) {
 	room, roomExists := state.GetRoom(cmd.RoomName)
 
 	if !roomExists {
-		fmt.Println("[DEBUG] tried to send a message to non existing room")
+		fmt.Println("[CLIENT] Tried to send a message to non existing room")
 		conn.WriteJSON(model.Message{
 			Sender: "SERVER",
 			Body:   "Room does not exist",
@@ -85,11 +85,11 @@ func handleSend(wrapper *models.ConnectionWrapper[model.Command]) {
 	if !ok {
 		err := wrapper.Conn.WriteJSON(model.Message{
 			Sender: "SERVER",
-			Body:   "Unauthorized",
+			Body:   "You are not connected to room `" + cmd.RoomName + "`.",
 		})
 
 		if err != nil {
-			fmt.Println("[ERROR] failed to write json to client")
+			fmt.Println("[ERROR] Failed to write json to client")
 			wrapper.Conn.Close()
 		}
 	}
@@ -100,7 +100,7 @@ func handleSend(wrapper *models.ConnectionWrapper[model.Command]) {
 	}
 
 	room.Broadcast <- message
-	fmt.Println("[Room] client sendt a message")
+	fmt.Println("[ROOM] Client sendt a message")
 }
 
 func handleLeave(wrapper *models.ConnectionWrapper[model.Command]) {
@@ -109,7 +109,7 @@ func handleLeave(wrapper *models.ConnectionWrapper[model.Command]) {
 	room, roomExists := state.GetRoom(cmd.RoomName)
 
 	if !roomExists {
-		fmt.Println("[DEBUG] tried to leave non existing room")
+		fmt.Println("[CLIENT] Tried to leave non existing room")
 		conn.WriteJSON(model.Message{
 			Sender: "SERVER",
 			Body:   "Cannot leave non existing room",
@@ -132,5 +132,5 @@ func handleLeave(wrapper *models.ConnectionWrapper[model.Command]) {
 	}
 
 	room.Broadcast <- message
-	fmt.Println("[Room] client disconnected")
+	fmt.Println("[ROOM] Client disconnected")
 }

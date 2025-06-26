@@ -25,7 +25,7 @@ func ConnectToServer() {
 	defer conn.Close()
 
 	state.Conn = conn
-	log.Println("[Server] is connected")
+	log.Println("[SERVER] Connected")
 
 	for {
 		_, msg, err := conn.ReadMessage()
@@ -45,7 +45,7 @@ func ConnectToServer() {
 }
 
 func InputReader() {
-	fmt.Println("[Client] starting input reader")
+	fmt.Println("[DEBUG] Starting input reader")
 
 	for {
 		command, err := cmd.GetCommand()
@@ -59,7 +59,7 @@ func InputReader() {
 			cmd.DisplayCommands()
 		case enum.Exit:
 			{
-				fmt.Println("[Client] shutting down input reader")
+				fmt.Println("[DEBUG] Shutting down input reader")
 				os.Exit(0)
 			}
 		default:
@@ -69,16 +69,16 @@ func InputReader() {
 }
 
 func CommandDispatcher() {
-	fmt.Println("[Client] starting command dispatcher")
+	fmt.Println("[DEBUG] Starting command dispatcher")
 	for {
 		command := <-state.Broadcast
 		err := state.Conn.WriteJSON(command)
-		fmt.Println("[DEBUG] sending to server")
+		fmt.Println("[DEBUG] Sending to server")
 		if err != nil {
 			slog.Error(err.Error())
 			break
 		}
 	}
 
-	fmt.Println("[Client] shutting down command dispatcher")
+	fmt.Println("[DEBUG] Shutting down command dispatcher")
 }

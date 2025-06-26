@@ -30,11 +30,11 @@ func (r *Room) Run() {
 
 		case client := <-r.Connect:
 			r.Clients[client.Name] = client.Conn
-			fmt.Println("[Room] client connected. Clients connected: ", len(r.Clients))
+			fmt.Println("[ROOM] Clients connected:", len(r.Clients))
 
 			r.Broadcast <- model.Message{
-				Name: "SERVER",
-				Body: client.Name + " joined the room...",
+				Sender: "SERVER",
+				Body:   client.Name + " connected to the room...",
 			}
 
 		case name := <-r.Leave:
@@ -44,7 +44,7 @@ func (r *Room) Run() {
 			for name, conn := range r.Clients {
 				err := conn.WriteJSON(message)
 				if err != nil {
-					fmt.Println("[ERROR] failed to broadcast message")
+					fmt.Println("[ERROR] Failed to broadcast message")
 					conn.Close()
 					delete(r.Clients, name)
 				}
