@@ -18,16 +18,16 @@ Welcome to go tchat!
 func DisplayCommands() {
 	fmt.Println(`
 Lobby commands:
-    /help             Displays available commands in you context
-    /connect <name>   Connect to a room with name "<name>"
-    /create  <name>   Creates a room with name "<name>"
-    /status           Displays all available rooms with a counter
-    /leave            Disconnects the client and shuts down the app
+    /help                            Displays available commands in you context
+    /connect <username> <room_name>  Connects a user to a room
+    /create  <name>                  Creates a room with name "<name>"
+    /status                          Displays all available rooms with a counter
+    /exit                            Disconnects the client and shuts down the app
 
 Room commands:
-    /help             Displays available commands in you context
-    /exit             Exits the room back to the lobby
-    <message>         Send a message by typing a "<message>" and hit enter
+    /help                            Displays available commands in you context
+    /leave                           Exits the room back to the lobby
+    <message>                        Send a message by typing a "<message>" and hit enter
 	`)
 }
 

@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"server/models"
+	"server/model"
 
 	"github.com/amund-fremming/common/enum"
-	"github.com/amund-fremming/common/model"
+	common "github.com/amund-fremming/common/model"
 	"github.com/gorilla/websocket"
 )
 
-var commandBroadcast = make(chan *models.ConnectionWrapper)
-var state = models.NewAppState()
+var commandBroadcast = make(chan *model.ConnectionWrapper)
+var state = model.NewAppState()
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
@@ -36,18 +36,19 @@ func commandReader(conn *websocket.Conn) {
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			fmt.Println("[ERROR] Failed to read message from client")
+			fmt.Println("[ERROR] Failed to read message from client. Closing connection")
+			conn.Close()
 			break
 		}
 
-		var cmd model.Command
+		var cmd common.Command
 		err = json.Unmarshal(msg, &cmd)
 		if err != nil {
 			fmt.Println("[ERROR] Failed to unmarshal bytes (200)")
 			break
 		}
 
-		wrapper := models.ConnectionWrapper{Item: cmd, Conn: conn}
+		wrapper := model.ConnectionWrapper{Item: cmd, Conn: conn}
 		commandBroadcast <- &wrapper
 	}
 }
@@ -56,17 +57,18 @@ func CommandDispatcher() {
 	for {
 		wrapper := <-commandBroadcast
 		cmd := wrapper.Item
-		fmt.Println("[CMD_DISPATCHER] dispatching command:", cmd.Action)
 
 		switch cmd.Action {
 		case enum.Connect:
 			handleConnect(wrapper)
 		case enum.Create:
-			handleCreate(&state, wrapper)
+			handleCreate(wrapper)
 		case enum.Send:
 			handleSend(wrapper)
 		case enum.Leave:
 			handleLeave(wrapper)
+		case enum.Exit:
+			handleExit(wrapper)
 		}
 	}
 }

@@ -1,29 +1,5 @@
 # Tasklist
 
-Tanker
-
-ClientState
-
-- View
-- ClientName
-- ServerName
-
-Lobby view
-
-- Connect
-- Create
-- Exit
-- Help
-
-Chat view
-
-- /leave
-- if not "/" -> its a message
-
----
-
-Do better?
-
 - Go rutines inside Run (Room) ??
 - State needs mutex lock
 - Make CommandDispatcher spawn new routines to handle different actions
@@ -32,7 +8,12 @@ Do better?
 
 ---
 
-# At last
+## Bugs
+
+- [ ] If you are typing a message, and you recieve a message, you ui gets cronked
+  - Probably just log one step up on all messages
+
+## At last
 
 - [ ] Refactor and test
 - [ ] Github Actions -> Hosting

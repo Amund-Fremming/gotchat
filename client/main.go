@@ -1,6 +1,7 @@
 package main
 
 import (
+	"client/cmd"
 	"client/program"
 	"fmt"
 	"net/http"
@@ -18,6 +19,8 @@ func main() {
 	fmt.Println("[SERVER] Healthy")
 
 	program.ConnectToServer()
+	cmd.DisplayWelcomeMessage()
+
 	go program.CommandReader()
 	go program.ServerReader()
 	go program.CommandDispatcher()

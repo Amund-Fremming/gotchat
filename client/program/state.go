@@ -1,8 +1,6 @@
 package program
 
 import (
-	"fmt"
-
 	"github.com/amund-fremming/common/enum"
 	"github.com/amund-fremming/common/model"
 	"github.com/gorilla/websocket"
@@ -57,6 +55,5 @@ func (s *AppState) CanExecuteCommand(cmd *model.Command) bool {
 			cmd.Action == enum.Help)
 	}
 
-	fmt.Println("[DEBUG] SOmething is really wrong")
 	return false
 }

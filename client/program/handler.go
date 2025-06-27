@@ -73,8 +73,6 @@ func ServerReader() {
 }
 
 func CommandReader() {
-	fmt.Println("[DEBUG] Starting input reader")
-
 	for {
 		command, err := cmd.GetCommand(state.ClientName, state.RoomName)
 		if err != nil {
@@ -83,8 +81,6 @@ func CommandReader() {
 		}
 
 		canExecute := state.CanExecuteCommand(&command)
-		fmt.Println("[DEBUG] View:", state.View)
-		fmt.Println("[DEBUG] CMD:", command.Action)
 		if !canExecute {
 			fmt.Println("[ERROR] Cant execute this command in current context")
 			continue
@@ -94,22 +90,19 @@ func CommandReader() {
 		case enum.Help:
 			cmd.DisplayCommands()
 
+		case enum.Leave:
+			state.View = enum.Lobby
+
 		case enum.Exit:
-			// Handle leaving correct so server does not lag with conneciton open
-			fmt.Println("[DEBUG] Shutting down input reader")
+			state.Conn.Close()
 			os.Exit(0)
 
-		case enum.Connect:
+		case enum.Connect, enum.Create:
 			if state.IsConnected() {
-				fmt.Println("[ERROR] Leave the current room before connection to a new one")
+				fmt.Println("[ERROR] Leave the current room before executing this command")
 				continue
 			}
 
-			state.ClientName = command.ClientName
-			state.RoomName = command.RoomName
-			state.View = enum.Lobby
-
-		case enum.Create:
 			state.ClientName = command.ClientName
 			state.RoomName = command.RoomName
 			state.View = enum.Room
@@ -120,16 +113,12 @@ func CommandReader() {
 }
 
 func CommandDispatcher() {
-	fmt.Println("[DEBUG] Starting command dispatcher")
 	for {
 		command := <-state.Broadcast
 		err := state.Conn.WriteJSON(command)
-		fmt.Println("[DEBUG] Sending to server")
 		if err != nil {
 			fmt.Println(err.Error())
 			break
 		}
 	}
-
-	fmt.Println("[DEBUG] Shutting down command dispatcher")
 }
