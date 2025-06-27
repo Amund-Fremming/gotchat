@@ -46,7 +46,7 @@ func (s *AppState) CanExecuteCommand(cmd *model.Command) bool {
 			cmd.Action == enum.Connect ||
 			cmd.Action == enum.Exit ||
 			cmd.Action == enum.Help ||
-			cmd.Action == enum.Status)
+			cmd.Action == enum.Rooms)
 	}
 
 	if state.View == enum.Room {

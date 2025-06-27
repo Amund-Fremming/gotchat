@@ -10,6 +10,10 @@ type ClientState struct {
 	ClientName string    `json:"clientname"`
 }
 
+type RoomData struct {
+	Content string `json:"content"`
+}
+
 type ChatMessage struct {
 	Sender  string `json:"sender"`
 	Content string `json:"content"`

@@ -68,10 +68,20 @@ func ServerReader() {
 				break
 			}
 			state.Merge(&clientState)
+
+		case enum.RoomsData:
+			var data model.RoomData
+			err := json.Unmarshal(envelope.Payload, &data)
+			if err != nil {
+				fmt.Println("[ERROR] Failed to unmarshal bytes (103)")
+				break
+			}
+			fmt.Println(data.Content)
 		}
 	}
 }
 
+// TODO: This is straight ugly, fix it
 func CommandReader() {
 	for {
 		command, err := cmd.GetCommand(state.ClientName, state.RoomName)

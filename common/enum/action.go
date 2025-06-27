@@ -6,7 +6,7 @@ const (
 	Help Action = iota
 	Connect
 	Create
-	Status
+	Rooms
 	Leave
 	Exit
 	Send
@@ -16,7 +16,7 @@ var actionNames = map[Action]string{
 	Help:    "help",
 	Connect: "connect",
 	Create:  "create",
-	Status:  "status",
+	Rooms:   "rooms",
 	Leave:   "leave",
 	Exit:    "exit",
 	Send:    "send",

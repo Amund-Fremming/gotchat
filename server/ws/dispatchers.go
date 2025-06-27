@@ -69,6 +69,8 @@ func CommandDispatcher() {
 			handleLeave(wrapper)
 		case enum.Exit:
 			handleExit(wrapper)
+		case enum.Rooms:
+			handleRooms(wrapper)
 		}
 	}
 }

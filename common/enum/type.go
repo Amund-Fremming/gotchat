@@ -7,6 +7,7 @@ const (
 	ServerError
 	ChatMessage
 	Command
+	RoomsData
 )
 
 var typeName = map[Type]string{
@@ -14,6 +15,7 @@ var typeName = map[Type]string{
 	ServerError: "servererror",
 	ChatMessage: "chatmessage",
 	Command:     "command",
+	RoomsData:   "roomsdata",
 }
 
 func (t Type) String() string {

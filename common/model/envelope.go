@@ -13,10 +13,10 @@ type Envelope struct {
 }
 
 type PayloadStruct interface {
-	ClientState | ChatMessage | ServerError | Command
+	ClientState | ChatMessage | ServerError | Command | RoomData
 }
 
-func NewEnvelope[T PayloadStruct](envelopeType enum.Type, payloadStruct T) Envelope {
+func NewEnvelope[T PayloadStruct](envelopeType enum.Type, payloadStruct *T) Envelope {
 	rawPayload, err := json.Marshal(payloadStruct)
 	if err != nil {
 		fmt.Println("[ERROR] Failed to marshal payload in envelope")
@@ -25,20 +25,4 @@ func NewEnvelope[T PayloadStruct](envelopeType enum.Type, payloadStruct T) Envel
 
 	envelope := Envelope{Type: envelopeType, Payload: rawPayload}
 	return envelope
-}
-
-type ClientState struct {
-	View       enum.View `json:"view"`
-	RoomName   string    `json:"roomname"`
-	ClientName string    `json:"clientname"`
-}
-
-type ChatMessage struct {
-	Sender  string `json:"sender"`
-	Content string `json:"content"`
-}
-
-type ServerError struct {
-	View    enum.View `json:"view"`
-	Content string    `json:"message"`
 }

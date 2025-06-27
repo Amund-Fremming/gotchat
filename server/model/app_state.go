@@ -1,6 +1,8 @@
 package model
 
-import "sync"
+import (
+	"sync"
+)
 
 type AppState struct {
 	rooms map[string]*Room
@@ -32,4 +34,9 @@ func (state *AppState) GetRoom(name string) (*Room, bool) {
 
 	room, ok := state.rooms[name]
 	return room, ok
+}
+
+// Use mutex when accessing this state
+func (state *AppState) GetRoomsUnsafe() map[string]*Room {
+	return state.rooms
 }

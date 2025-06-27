@@ -10,6 +10,8 @@
 
 ## Bugs
 
+- [ ] No error handling, removing when a write operation fails
+  - Make a error handling function that closes and removes client
 - [ ] If you are typing a message, and you recieve a message, you ui gets cronked
   - Probably just log one step up on all messages
 

@@ -10,20 +10,20 @@ import (
 )
 
 type Room struct {
-	Mu        sync.RWMutex
-	clients   map[string]*websocket.Conn
-	Connect   chan *Client
-	Leave     chan *Client
-	Broadcast chan model.ChatMessage
+	Mu      sync.RWMutex
+	clients map[string]*websocket.Conn
+	Connect chan *Client
+	Leave   chan *Client
+	Chat    chan *model.ChatMessage
 }
 
 func NewRoom(n string, c *websocket.Conn) Room {
 	return Room{
-		Mu:        sync.RWMutex{},
-		clients:   map[string]*websocket.Conn{n: c},
-		Connect:   make(chan *Client, 100),
-		Leave:     make(chan *Client, 100),
-		Broadcast: make(chan model.ChatMessage, 100),
+		Mu:      sync.RWMutex{},
+		clients: map[string]*websocket.Conn{n: c},
+		Connect: make(chan *Client, 100),
+		Leave:   make(chan *Client, 100),
+		Chat:    make(chan *model.ChatMessage, 100),
 	}
 }
 
@@ -52,6 +52,12 @@ func (r *Room) Empty() bool {
 	return len(r.clients) == 0
 }
 
+func (r *Room) Count() int {
+	r.Mu.RLock()
+	defer r.Mu.RUnlock()
+	return len(r.clients)
+}
+
 func (r *Room) Run() {
 	fmt.Println("[ROOM] Created")
 
@@ -62,14 +68,14 @@ ROOM:
 			r.SetClient(client.Name, client.Conn)
 			fmt.Println("[ROOM] Client connected. Size:", len(r.clients))
 
-			r.Broadcast <- model.ChatMessage{Sender: "SERVER", Content: client.Name + " connected to the room..."}
+			r.Chat <- &model.ChatMessage{Sender: "SERVER", Content: client.Name + " connected to the room..."}
 
 		case client := <-r.Leave:
 			client.Conn.Close()
 			r.RemoveClient(client.Name)
 			fmt.Println("[SERVER] " + client.Name + " left the room..")
 
-		case message := <-r.Broadcast:
+		case message := <-r.Chat:
 			envelope := model.NewEnvelope(enum.ChatMessage, message)
 			r.Mu.RLock()
 			for name, conn := range r.clients {
