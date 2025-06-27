@@ -76,9 +76,17 @@ func CommandReader() {
 	fmt.Println("[DEBUG] Starting input reader")
 
 	for {
-		command, err := cmd.GetCommand()
+		command, err := cmd.GetCommand(state.ClientName, state.RoomName)
 		if err != nil {
 			fmt.Println(err.Error())
+			continue
+		}
+
+		canExecute := state.CanExecuteCommand(&command)
+		fmt.Println("[DEBUG] View:", state.View)
+		fmt.Println("[DEBUG] CMD:", command.Action)
+		if !canExecute {
+			fmt.Println("[ERROR] Cant execute this command in current context")
 			continue
 		}
 
@@ -94,16 +102,20 @@ func CommandReader() {
 		case enum.Connect:
 			if state.IsConnected() {
 				fmt.Println("[ERROR] Leave the current room before connection to a new one")
-				break
+				continue
 			}
 
 			state.ClientName = command.ClientName
 			state.RoomName = command.RoomName
 			state.View = enum.Lobby
 
-		default:
-			state.Broadcast <- &command
+		case enum.Create:
+			state.ClientName = command.ClientName
+			state.RoomName = command.RoomName
+			state.View = enum.Room
 		}
+
+		state.Broadcast <- &command
 	}
 }
 

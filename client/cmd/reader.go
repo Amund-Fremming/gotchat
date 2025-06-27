@@ -19,14 +19,20 @@ func ReadInput() string {
 	return input
 }
 
-func GetCommand() (Command, error) {
+func GetCommand(clientName string, roomName string) (Command, error) {
 	var input string = ReadInput()
-	verbs := strings.Split(input, " ")
+	isChatMessage := !strings.HasPrefix(input, "/")
 
-	// TODO: some validation for the input
-	if len(verbs) == 0 {
-		return Command{}, errors.New("[ERROR] cannot read empty command")
+	if isChatMessage {
+		return model.Command{
+			Action:     enum.Send,
+			ClientName: clientName,
+			RoomName:   roomName,
+			Message:    input,
+		}, nil
 	}
+
+	verbs := strings.Split(input, " ")
 
 	switch verbs[0] {
 	case "/help":
@@ -38,8 +44,8 @@ func GetCommand() (Command, error) {
 	case "/leave":
 		return model.Command{
 			Action:     enum.Leave,
-			ClientName: verbs[1],
-			RoomName:   verbs[2],
+			ClientName: clientName,
+			RoomName:   roomName,
 		}, nil
 	case "/connect":
 		return model.Command{
@@ -53,13 +59,7 @@ func GetCommand() (Command, error) {
 			ClientName: verbs[1],
 			RoomName:   verbs[2],
 		}, nil
-	case "/send":
-		return model.Command{
-			Action:     enum.Send,
-			ClientName: verbs[1],
-			RoomName:   verbs[2],
-			Message:    verbs[3],
-		}, nil
+
 	}
 
 	return Command{}, errors.New("[ERROR] Invalid command")
