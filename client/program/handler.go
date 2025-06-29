@@ -32,10 +32,13 @@ func ServerReader() {
 			fmt.Println(err.Error())
 		}
 
+		failedUnmarshallingMessage := "Failed to read message from the server. Shutting down.."
+
 		var envelope model.Envelope
 		err = json.Unmarshal(bytes, &envelope)
 		if err != nil {
-			fmt.Println("[ERROR] Failed to unmarshal bytes (100)")
+			fmt.Println("[ERROR]", failedUnmarshallingMessage)
+			state.Conn.Close()
 			break
 		}
 
@@ -44,7 +47,8 @@ func ServerReader() {
 			var msg model.ChatMessage
 			err := json.Unmarshal(envelope.Payload, &msg)
 			if err != nil {
-				fmt.Println("[ERROR] Failed to unmarshal bytes (101)")
+				fmt.Println("[ERROR]", failedUnmarshallingMessage)
+				state.Conn.Close()
 				break
 			}
 			cmd.DisplayMessage(&msg)
@@ -53,7 +57,8 @@ func ServerReader() {
 			var error model.ServerError
 			err := json.Unmarshal(envelope.Payload, &error)
 			if err != nil {
-				fmt.Println("[ERROR] Failed to unmarshal bytes (102)")
+				fmt.Println("[ERROR]", failedUnmarshallingMessage)
+				state.Conn.Close()
 				break
 			}
 			state.View = error.View
@@ -63,7 +68,8 @@ func ServerReader() {
 			var clientState model.ClientState
 			err := json.Unmarshal(envelope.Payload, &clientState)
 			if err != nil {
-				fmt.Println("[ERROR] Failed to unmarshal bytes (103)")
+				fmt.Println("[ERROR]", failedUnmarshallingMessage)
+				state.Conn.Close()
 				break
 			}
 			state.Merge(&clientState)
@@ -72,7 +78,8 @@ func ServerReader() {
 			var data model.RoomData
 			err := json.Unmarshal(envelope.Payload, &data)
 			if err != nil {
-				fmt.Println("[ERROR] Failed to unmarshal bytes (103)")
+				fmt.Println("[ERROR]", failedUnmarshallingMessage)
+				state.Conn.Close()
 				break
 			}
 			fmt.Println(data.Content)
@@ -108,7 +115,7 @@ func CommandReader() {
 
 		case enum.Connect, enum.Create:
 			if state.IsConnected() {
-				fmt.Println("[ERROR] Leave the current room before executing this command")
+				fmt.Println("[ERROR] Leave the current room before creating a new")
 				continue
 			}
 

@@ -1,21 +1,12 @@
 # Tasklist
 
 - Go rutines inside Run (Room) ??
-- Make CommandDispatcher spawn new routines to handle different actions
-- Disconnect handling for both server and client
-  - Client may need to request a disconnect, or handle on closing of the socket
+- Make CommandDispatcher spawn new routines to handle different actions ??
 
----
+## TODO
 
-## Bugs
-
-- [ ] Fix client logs for more user friendly logging, and close connection when reads / unmashslling fails
-- [ ] No error handling, removing when a write operation fails
-  - Make a error handling function that closes and removes client
-- [ ] If you are typing a message, and you recieve a message, you ui gets cronked
-  - Probably just log one step up on all messages
-
-## At last
-
+- [ ] dev and prod env for client and server
+- [ ] BUG: Typing messages are intercepted if a message is recieved. Log messages one step up
+- [ ] Create tests
 - [ ] Refactor and test
 - [ ] Github Actions -> Hosting
