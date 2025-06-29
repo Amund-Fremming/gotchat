@@ -1,12 +1,12 @@
 package api
 
 import (
-	"fmt"
+	"log/slog"
 	"net/http"
 )
 
 func Health(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("[CLIENT] Requested health-check")
+	slog.Info("Client requested health-check", "health", "OK")
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{ "status": "OK"}`))
 }

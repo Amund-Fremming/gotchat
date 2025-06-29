@@ -2,7 +2,7 @@ package ws
 
 import (
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"net/http"
 	"server/model"
 
@@ -21,12 +21,12 @@ var upgrader = websocket.Upgrader{
 func ClientDispatcher(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println("[ERROR] Failed to upgrade connection.")
+		slog.Error("Failed to upgrade a incomming connection")
 		conn.Close()
 		return
 	}
 
-	fmt.Println("[CLIENT] Connected")
+	slog.Info("Client connected to the server", "address", conn.LocalAddr())
 	go commandReader(conn)
 }
 
@@ -36,7 +36,7 @@ func commandReader(conn *websocket.Conn) {
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			fmt.Println("[ERROR] Failed to read message from client. Closing connection")
+			slog.Error("Failed to read message from client", "address", conn.LocalAddr())
 			conn.Close()
 			break
 		}
@@ -44,7 +44,8 @@ func commandReader(conn *websocket.Conn) {
 		var cmd common.Command
 		err = json.Unmarshal(msg, &cmd)
 		if err != nil {
-			fmt.Println("[ERROR] Failed to unmarshal bytes (200)")
+			slog.Error("Failed to unmarshal command", "address", conn.LocalAddr())
+			conn.Close()
 			break
 		}
 

@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"log/slog"
 	"sync"
 
 	"github.com/amund-fremming/common/enum"
@@ -11,16 +12,18 @@ import (
 
 type Room struct {
 	Mu      sync.RWMutex
+	Name    string
 	clients map[string]*websocket.Conn
 	Connect chan *Client
 	Leave   chan *Client
 	Chat    chan *model.ChatMessage
 }
 
-func NewRoom(n string, c *websocket.Conn) Room {
+func NewRoom(name string, c *websocket.Conn) Room {
 	return Room{
 		Mu:      sync.RWMutex{},
-		clients: map[string]*websocket.Conn{n: c},
+		Name:    "Default",
+		clients: make(map[string]*websocket.Conn),
 		Connect: make(chan *Client, 100),
 		Leave:   make(chan *Client, 100),
 		Chat:    make(chan *model.ChatMessage, 100),
@@ -59,29 +62,32 @@ func (r *Room) Count() int {
 }
 
 func (r *Room) Run() {
-	fmt.Println("[ROOM] Created")
+	slog.Info(fmt.Sprintf("ROOM [%s]: Created", r.Name))
 
 ROOM:
 	for {
 		select {
 		case client := <-r.Connect:
 			r.SetClient(client.Name, client.Conn)
-			fmt.Println("[ROOM] Client connected. Size:", len(r.clients))
+			slog.Info(fmt.Sprintf("ROOM [%s]: Client %s connected", r.Name, client.Name))
+			slog.Info(fmt.Sprintf("ROOM [%s]: Connected clients: %d", r.Name, len(r.clients)))
 
 			r.Chat <- &model.ChatMessage{Sender: "SERVER", Content: client.Name + " connected to the room..."}
 
 		case client := <-r.Leave:
 			client.Conn.Close()
 			r.RemoveClient(client.Name)
-			fmt.Println("[SERVER] " + client.Name + " left the room..")
+			slog.Info(fmt.Sprintf("ROOM [%s]: Client %s left the room", r.Name, client.Name))
 
 		case message := <-r.Chat:
+			slog.Debug(fmt.Sprintf("ROOM [%s]: Client %s sendt a message", r.Name, message.Sender))
 			envelope := model.NewEnvelope(enum.ChatMessage, message)
 			r.Mu.RLock()
 			for name, conn := range r.clients {
 				err := conn.WriteJSON(envelope)
 				if err != nil {
-					fmt.Println("[ERROR] Failed to broadcast message")
+					slog.Error(fmt.Sprintf("ROOM [%s]: Client %s failed to write too room.", r.Name, message.Sender))
+					slog.Error("Closing connection to client sender", "sender", message.Sender)
 					r.RemoveClient(name)
 					conn.Close()
 				}
@@ -90,7 +96,7 @@ ROOM:
 		}
 
 		if r.Empty() {
-			fmt.Println("[ROOM] Room is closing itself")
+			slog.Info(fmt.Sprintf("ROOM [%s]: Closing room, no more clients connected", r.Name))
 			break ROOM
 		}
 	}

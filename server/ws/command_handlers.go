@@ -2,6 +2,7 @@ package ws
 
 import (
 	"fmt"
+	"log/slog"
 	"server/model"
 	"strconv"
 	"strings"
@@ -12,14 +13,13 @@ import (
 )
 
 func sendServerError(content string, conn *websocket.Conn) {
-	fmt.Println("[SERVER] " + content)
-
+	slog.Error(strings.ToLower(content))
 	serverError := common.ServerError{View: enum.Lobby, Content: content}
 	envelope := common.NewEnvelope(enum.ServerError, &serverError)
 
 	err := conn.WriteJSON(envelope)
 	if err != nil {
-		fmt.Println("[ERROR] Failed to write json to client")
+		slog.Error("Failed to write json to client", "address", conn.LocalAddr())
 		conn.Close()
 	}
 }
@@ -41,8 +41,6 @@ func handleConnect(wrapper *model.ConnectionWrapper) {
 
 	client := model.Client{Name: cmd.ClientName, Conn: conn}
 	room.Connect <- &client
-
-	fmt.Println("[CLIENT] Connected")
 }
 
 func handleCreate(wrapper *model.ConnectionWrapper) {
@@ -54,7 +52,7 @@ func handleCreate(wrapper *model.ConnectionWrapper) {
 		return
 	}
 
-	newRoom := model.NewRoom(cmd.ClientName, conn)
+	newRoom := model.NewRoom(cmd.RoomName, conn)
 	state.AddRoom(cmd.RoomName, &newRoom)
 
 	go newRoom.Run()
@@ -62,7 +60,7 @@ func handleCreate(wrapper *model.ConnectionWrapper) {
 	client := model.Client{Name: cmd.ClientName, Conn: conn}
 	newRoom.Connect <- &client
 
-	fmt.Println("[CLIENT] Created room")
+	slog.Info(fmt.Sprintf("Client %s created room %s", cmd.ClientName, cmd.RoomName))
 }
 
 func handleSend(wrapper *model.ConnectionWrapper) {
@@ -82,8 +80,6 @@ func handleSend(wrapper *model.ConnectionWrapper) {
 
 	message := common.ChatMessage{Sender: cmd.ClientName, Content: cmd.Message}
 	room.Chat <- &message
-
-	fmt.Println("[ROOM] Client sendt a message")
 }
 
 func handleLeave(wrapper *model.ConnectionWrapper) {
@@ -108,12 +104,19 @@ func handleLeave(wrapper *model.ConnectionWrapper) {
 
 	message := common.ChatMessage{Sender: "SERVER", Content: "You left the room"}
 	envelope := common.NewEnvelope(enum.ChatMessage, &message)
-	conn.WriteJSON(envelope)
+	err := conn.WriteJSON(envelope)
+	if err != nil {
+		slog.Error("Failed write to socket", "client", cmd.ClientName)
+		slog.Info("Closing failed connection", "client", cmd.ClientName)
+		conn.Close()
+		return
+	}
 
 	chatMessage := common.ChatMessage{Sender: "SERVER", Content: cmd.ClientName + " left the room..."}
 	room.Chat <- &chatMessage
 
 	fmt.Println("[ROOM] Client disconnected")
+	slog.Info("Client left the room", "client", cmd.ClientName, "room", cmd.RoomName)
 }
 
 func handleExit(wrapper *model.ConnectionWrapper) {

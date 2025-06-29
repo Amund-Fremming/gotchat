@@ -35,7 +35,6 @@ func ServerReader() {
 		var envelope model.Envelope
 		err = json.Unmarshal(bytes, &envelope)
 		if err != nil {
-			fmt.Println("[DEBUG]", err.Error())
 			fmt.Println("[ERROR] Failed to unmarshal bytes (100)")
 			break
 		}
