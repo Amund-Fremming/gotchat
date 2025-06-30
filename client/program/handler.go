@@ -4,9 +4,11 @@ import (
 	"client/cmd"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/url"
 	"os"
 
+	"github.com/amund-fremming/common/config"
 	"github.com/amund-fremming/common/enum"
 	"github.com/amund-fremming/common/model"
 	"github.com/gorilla/websocket"
@@ -14,8 +16,15 @@ import (
 
 var state AppState = NewAppState()
 
-func ConnectToServer() {
-	url := url.URL{Scheme: "ws", Host: "localhost:8080", Path: "/chat"}
+func ConnectToServer(cfg *config.Config) {
+	url := url.URL{
+		Scheme: cfg.SocketScheme,
+		Host:   cfg.URL + ":" + cfg.Port,
+		Path:   "/chat",
+	}
+
+	slog.Debug("Url constructed", "scheme", url.Scheme, "host", url.Host, "path", url.Path)
+
 	conn, _, err := websocket.DefaultDialer.Dial(url.String(), nil)
 	if err != nil {
 		fmt.Println(err.Error())
