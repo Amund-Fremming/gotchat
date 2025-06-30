@@ -4,27 +4,26 @@ import (
 	"log/slog"
 	"net/http"
 	"server/api"
-	"server/config"
 	"server/ws"
+
+	"github.com/amund-fremming/common/config"
 )
 
 func main() {
-	config.LoadEnv()
-	env := config.GetEnv()
-
-	switch env {
-	case config.Production:
-		slog.SetLogLoggerLevel(slog.LevelError)
-	case config.Development:
-		slog.SetLogLoggerLevel(slog.LevelDebug)
+	config, err := config.Load()
+	if err != nil {
+		slog.Error(err.Error())
+		return
 	}
 
-	slog.Debug("Environemnt loaded", "env", env)
+	slog.SetLogLoggerLevel(config.LogLevel)
+	slog.Debug("Environemnt loaded", "env", config.Env)
 
 	http.HandleFunc("/health", api.Health)
 	http.HandleFunc("/chat", ws.ClientDispatcher)
 
 	slog.Info("Server started")
 	go ws.CommandDispatcher()
-	http.ListenAndServe(":8080", nil)
+
+	http.ListenAndServe(":"+config.Port, nil)
 }
