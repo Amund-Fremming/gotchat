@@ -38,3 +38,38 @@ func DisplayMessage(msg *model.ChatMessage) {
 func DisplayError(content string) {
 	fmt.Println("[SERVER] " + content)
 }
+
+func DisplayServerMessage(content string) {
+	fmt.Println("[SERVER]", content)
+}
+
+func DisplayErrorMessage(content string) {
+	fmt.Println("[ERROR]", content)
+}
+
+type CursorAction int
+
+const (
+	MoveTwoUp CursorAction = iota
+	MoveTwoDown
+	MoveLinestart
+	DeleteAllRight
+	Newline
+)
+
+func handleCursor(a CursorAction) {
+	switch a {
+	case MoveTwoUp:
+		fmt.Print("\033[A]")
+		fmt.Print("\033[A]")
+	case MoveTwoDown:
+		fmt.Print("\033[B]")
+		fmt.Print("\033[B]")
+	case MoveLinestart:
+		fmt.Print("\r")
+	case DeleteAllRight:
+		fmt.Print("\033[K]")
+	case Newline:
+		fmt.Println()
+	}
+}

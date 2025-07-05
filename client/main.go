@@ -10,8 +10,6 @@ import (
 	"github.com/amund-fremming/common/config"
 )
 
-const ServerUrlBase = "http://localhost:8080"
-
 func main() {
 	config, err := config.Load()
 	if err != nil {
@@ -19,10 +17,10 @@ func main() {
 		return
 	}
 
-	const ServerUrlBase = ""
+	serverUrlBase := fmt.Sprintf("%s://%s:%s", config.Scheme, config.URL, config.Port)
 	slog.SetLogLoggerLevel(config.LogLevel)
 
-	response, err := http.Get(ServerUrlBase + "/health")
+	response, err := http.Get(serverUrlBase + "/health")
 	if err != nil || response.Status != "200 OK" {
 		fmt.Println("[ERROR] The sever is currently unavailable")
 		fmt.Println("[CLIENT] Shutting down..")

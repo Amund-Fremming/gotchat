@@ -4,7 +4,6 @@ import (
 	"client/cmd"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/url"
 	"os"
 
@@ -23,22 +22,20 @@ func ConnectToServer(cfg *config.Config) {
 		Path:   "/chat",
 	}
 
-	slog.Debug("Url constructed", "scheme", url.Scheme, "host", url.Host, "path", url.Path)
-
 	conn, _, err := websocket.DefaultDialer.Dial(url.String(), nil)
 	if err != nil {
-		fmt.Println(err.Error())
+		cmd.DisplayErrorMessage(err.Error())
 	}
 
 	state.Conn = conn
-	fmt.Println("[SERVER] Connected")
+	cmd.DisplayServerMessage("Connected")
 }
 
 func ServerReader() {
 	for {
 		_, bytes, err := state.Conn.ReadMessage()
 		if err != nil {
-			fmt.Println(err.Error())
+			cmd.DisplayErrorMessage(err.Error())
 		}
 
 		failedUnmarshallingMessage := "Failed to read message from the server. Shutting down.."
@@ -46,7 +43,7 @@ func ServerReader() {
 		var envelope model.Envelope
 		err = json.Unmarshal(bytes, &envelope)
 		if err != nil {
-			fmt.Println("[ERROR]", failedUnmarshallingMessage)
+			cmd.DisplayErrorMessage(failedUnmarshallingMessage)
 			state.Conn.Close()
 			break
 		}
@@ -56,28 +53,33 @@ func ServerReader() {
 			var msg model.ChatMessage
 			err := json.Unmarshal(envelope.Payload, &msg)
 			if err != nil {
-				fmt.Println("[ERROR]", failedUnmarshallingMessage)
+				cmd.DisplayErrorMessage(failedUnmarshallingMessage)
 				state.Conn.Close()
 				break
 			}
+
+			if state.ClientName == msg.Sender {
+				break
+			}
+
 			cmd.DisplayMessage(&msg)
 
 		case enum.ServerError:
 			var error model.ServerError
 			err := json.Unmarshal(envelope.Payload, &error)
 			if err != nil {
-				fmt.Println("[ERROR]", failedUnmarshallingMessage)
+				cmd.DisplayErrorMessage(failedUnmarshallingMessage)
 				state.Conn.Close()
 				break
 			}
 			state.View = error.View
-			cmd.DisplayError(error.Content)
+			cmd.DisplayServerMessage(error.Content)
 
 		case enum.ClientState:
 			var clientState model.ClientState
 			err := json.Unmarshal(envelope.Payload, &clientState)
 			if err != nil {
-				fmt.Println("[ERROR]", failedUnmarshallingMessage)
+				cmd.DisplayErrorMessage(failedUnmarshallingMessage)
 				state.Conn.Close()
 				break
 			}
@@ -87,7 +89,7 @@ func ServerReader() {
 			var data model.RoomData
 			err := json.Unmarshal(envelope.Payload, &data)
 			if err != nil {
-				fmt.Println("[ERROR]", failedUnmarshallingMessage)
+				cmd.DisplayErrorMessage(failedUnmarshallingMessage)
 				state.Conn.Close()
 				break
 			}
@@ -96,18 +98,18 @@ func ServerReader() {
 	}
 }
 
-// TODO: This is straight ugly, fix it
 func CommandReader() {
 	for {
-		command, err := cmd.GetCommand(state.ClientName, state.RoomName)
+		input := cmd.ReadInput()
+		command, err := cmd.GetCommand(input, state.ClientName, state.RoomName)
 		if err != nil {
-			fmt.Println(err.Error())
+			cmd.DisplayErrorMessage(err.Error())
 			continue
 		}
 
 		canExecute := state.CanExecuteCommand(&command)
 		if !canExecute {
-			fmt.Println("[ERROR] Cant execute this command in current context")
+			cmd.DisplayErrorMessage("Cant execute this command in current context")
 			continue
 		}
 
@@ -124,7 +126,7 @@ func CommandReader() {
 
 		case enum.Connect, enum.Create:
 			if state.IsConnected() {
-				fmt.Println("[ERROR] Leave the current room before creating a new")
+				cmd.DisplayErrorMessage("Leave the current room before creating a new")
 				continue
 			}
 
@@ -142,7 +144,7 @@ func CommandDispatcher() {
 		command := <-state.Broadcast
 		err := state.Conn.WriteJSON(command)
 		if err != nil {
-			fmt.Println(err.Error())
+			cmd.DisplayErrorMessage(err.Error())
 			break
 		}
 	}
