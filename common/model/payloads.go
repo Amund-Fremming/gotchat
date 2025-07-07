@@ -8,6 +8,7 @@ type ClientState struct {
 	View       enum.View `json:"view"`
 	RoomName   string    `json:"roomname"`
 	ClientName string    `json:"clientname"`
+	Prompt     string    `json:"prompt"`
 }
 
 type RoomData struct {

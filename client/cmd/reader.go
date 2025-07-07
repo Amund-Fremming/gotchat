@@ -1,22 +1,35 @@
 package cmd
 
 import (
-	"bufio"
 	"errors"
-	"os"
 	"strings"
 
 	"github.com/amund-fremming/common/enum"
 	"github.com/amund-fremming/common/model"
+	"github.com/chzyer/readline"
 )
 
 type Command = model.Command
 
+var rl *readline.Instance
+
+func InitReadline() error {
+	var err error
+	rl, err = readline.New("> ")
+	return err
+}
+
+func SetPrompt(prompt string) {
+	rl.SetPrompt(prompt)
+	rl.Refresh()
+}
+
 func ReadInput() string {
-	reader := bufio.NewReader(os.Stdin)
-	input, _ := reader.ReadString('\n')
-	input = strings.TrimSpace(input)
-	return input
+	line, err := rl.Readline()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(line)
 }
 
 func GetCommand(input string, clientName string, roomName string) (Command, error) {

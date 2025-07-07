@@ -72,12 +72,44 @@ ROOM:
 			slog.Info(fmt.Sprintf("ROOM [%s]: Client %s connected", r.Name, client.Name))
 			slog.Info(fmt.Sprintf("ROOM [%s]: Connected clients: %d", r.Name, len(r.clients)))
 
+			state := model.ClientState{
+				View:       enum.Room,
+				RoomName:   r.Name,
+				ClientName: client.Name,
+				Prompt:     "[@you] ",
+			}
+
+			envelope := model.NewEnvelope(enum.ClientState, &state)
+			err := client.Conn.WriteJSON(envelope)
+			if err != nil {
+				r.RemoveClient(client.Name)
+				client.Conn.Close()
+				slog.Error("Closing connection to client", "client_name", client.Name)
+				return
+			}
+
 			r.Chat <- &model.ChatMessage{Sender: "SERVER", Content: client.Name + " connected to the room..."}
 
 		case client := <-r.Leave:
 			client.Conn.Close()
 			r.RemoveClient(client.Name)
 			slog.Info(fmt.Sprintf("ROOM [%s]: Client %s left the room", r.Name, client.Name))
+
+			state := model.ClientState{
+				View:       enum.Lobby,
+				ClientName: "",
+				RoomName:   "",
+				Prompt:     "> ",
+			}
+
+			envelope := model.NewEnvelope(enum.ClientState, &state)
+			err := client.Conn.WriteJSON(envelope)
+			if err != nil {
+				r.RemoveClient(client.Name)
+				client.Conn.Close()
+				slog.Error("Closing connection to client", "client_name", client.Name)
+				return
+			}
 
 		case message := <-r.Chat:
 			slog.Debug(fmt.Sprintf("ROOM [%s]: Client %s sendt a message", r.Name, message.Sender))

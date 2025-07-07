@@ -84,6 +84,7 @@ func ServerReader() {
 				break
 			}
 			state.Merge(&clientState)
+			cmd.SetPrompt(clientState.Prompt)
 
 		case enum.RoomsData:
 			var data model.RoomData
@@ -119,6 +120,7 @@ func CommandReader() {
 
 		case enum.Leave:
 			state.View = enum.Lobby
+			cmd.SetPrompt("> ")
 
 		case enum.Exit:
 			state.Conn.Close()
@@ -129,10 +131,6 @@ func CommandReader() {
 				cmd.DisplayErrorMessage("Leave the current room before creating a new")
 				continue
 			}
-
-			state.ClientName = command.ClientName
-			state.RoomName = command.RoomName
-			state.View = enum.Room
 		}
 
 		state.Broadcast <- &command

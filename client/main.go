@@ -13,7 +13,7 @@ import (
 func main() {
 	config, err := config.Load()
 	if err != nil {
-		fmt.Println("[CLIENT] Failed due to missing enviroment variables")
+		fmt.Print("\r[CLIENT] Failed due to missing enviroment variables\n")
 		return
 	}
 
@@ -27,6 +27,12 @@ func main() {
 		return
 	}
 	fmt.Println("[SERVER] Healthy")
+
+	err = cmd.InitReadline()
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
 
 	program.ConnectToServer(&config)
 	cmd.DisplayWelcomeMessage()
