@@ -26,7 +26,7 @@ func sendServerError(content string, conn *websocket.Conn) {
 
 func handleConnect(wrapper *model.ConnectionWrapper) {
 	cmd, conn := wrapper.UnWrap()
-	room, roomExists := state.GetRoom(cmd.RoomName)
+	room, roomExists := state.TryGetRoom(cmd.RoomName)
 
 	if !roomExists {
 		sendServerError("Room does not exist", conn)
@@ -45,7 +45,7 @@ func handleConnect(wrapper *model.ConnectionWrapper) {
 
 func handleCreate(wrapper *model.ConnectionWrapper) {
 	cmd, conn := wrapper.UnWrap()
-	_, roomExists := state.GetRoom(cmd.RoomName)
+	_, roomExists := state.TryGetRoom(cmd.RoomName)
 
 	if roomExists {
 		sendServerError("Room name is already in use", conn)
@@ -65,7 +65,7 @@ func handleCreate(wrapper *model.ConnectionWrapper) {
 
 func handleSend(wrapper *model.ConnectionWrapper) {
 	cmd, conn := wrapper.UnWrap()
-	room, roomExists := state.GetRoom(cmd.RoomName)
+	room, roomExists := state.TryGetRoom(cmd.RoomName)
 
 	if !roomExists {
 		sendServerError("Room does not exist", conn)
@@ -84,7 +84,7 @@ func handleSend(wrapper *model.ConnectionWrapper) {
 
 func handleLeave(wrapper *model.ConnectionWrapper) {
 	cmd, conn := wrapper.UnWrap()
-	room, roomExists := state.GetRoom(cmd.RoomName)
+	room, roomExists := state.TryGetRoom(cmd.RoomName)
 
 	if !roomExists {
 		sendServerError("Cannot leave non-existing room", conn)
@@ -121,7 +121,7 @@ func handleLeave(wrapper *model.ConnectionWrapper) {
 
 func handleExit(wrapper *model.ConnectionWrapper) {
 	cmd, conn := wrapper.UnWrap()
-	room, exists := state.GetRoom(cmd.RoomName)
+	room, exists := state.TryGetRoom(cmd.RoomName)
 	if !exists {
 		return
 	}

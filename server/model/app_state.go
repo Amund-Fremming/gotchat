@@ -28,7 +28,7 @@ func (state *AppState) RemoveRoom(name string) {
 	delete(state.rooms, name)
 }
 
-func (state *AppState) GetRoom(name string) (*Room, bool) {
+func (state *AppState) TryGetRoom(name string) (*Room, bool) {
 	state.mu.RLock()
 	defer state.mu.RUnlock()
 

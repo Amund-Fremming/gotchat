@@ -34,6 +34,7 @@ type Config struct {
 	Env          Environment
 	Port         string
 	URL          string
+	Scheme       string
 	SocketScheme string
 }
 
@@ -64,9 +65,10 @@ func Load() (Config, error) {
 	port := os.Getenv("PORT")
 	url := os.Getenv("URL")
 	socketScheme := os.Getenv("SOCKET_SCHEME")
+	scheme := os.Getenv("SCHEME")
 
 	if port == "" || url == "" || socketScheme == "" {
-		return Config{}, errors.New("failed due to missing environment variables")
+		return Config{}, errors.New("missing environment variables")
 	}
 
 	return Config{
@@ -74,6 +76,7 @@ func Load() (Config, error) {
 		Env:          env,
 		Port:         port,
 		URL:          url,
+		Scheme:       scheme,
 		SocketScheme: socketScheme,
 	}, nil
 }

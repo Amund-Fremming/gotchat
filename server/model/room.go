@@ -22,7 +22,7 @@ type Room struct {
 func NewRoom(name string, c *websocket.Conn) Room {
 	return Room{
 		Mu:      sync.RWMutex{},
-		Name:    "Default",
+		Name:    name,
 		clients: make(map[string]*websocket.Conn),
 		Connect: make(chan *Client, 100),
 		Leave:   make(chan *Client, 100),
