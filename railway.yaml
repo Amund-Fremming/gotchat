@@ -1,8 +1,7 @@
 project: go-chat-server
 deploy:
   name: go-chat-server
-  workingDirectory: ./server
   build:
-    command: pwd && ls -la && go build -o app
+    command: go build -o app ./server
   run:
     command: ./app
