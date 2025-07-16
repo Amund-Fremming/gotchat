@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/amund-fremming/common/enum"
-	common "github.com/amund-fremming/common/model"
+	"github.com/amund-fremming/gotchat-common/enum"
+	common "github.com/amund-fremming/gotchat-common/model"
 	"github.com/gorilla/websocket"
 )
 

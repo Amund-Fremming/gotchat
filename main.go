@@ -6,7 +6,7 @@ import (
 	"server/api"
 	"server/ws"
 
-	"github.com/amund-fremming/common/config"
+	"github.com/amund-fremming/gotchat-common/config"
 )
 
 func main() {

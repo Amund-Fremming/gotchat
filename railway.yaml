@@ -1,7 +1,7 @@
-project: go-chat-server
+project: gotchat-server
 deploy:
-  name: go-chat-server
+  name: gotchat-server
   build:
-    command: go build -o app ./server
+    command: go build -o app 
   run:
     command: ./app
